@@ -1,147 +1,143 @@
-// package com.mosh;
+/*
+	M = Princ * ((rate * (1+rate)^n) / ((1+rate)^n-1))
 
-import java.util.Date;
-import java.util.Arrays;
+	rate = (yr rate /12 ) / 100
+	n = period yrs * 12
+	
+	Math.pow(a, b)
+	
+	$1k-$1M
+	rate > 0, < 30
+	yrs 1 and 30
+	*
+	
+*/	
+
+
 import java.awt.*;
 import java.text.NumberFormat;
 import java.util.Scanner;
 
 
 public class Main {
+
+	final static byte MONTHS_IN_YEAR = 12;
+	final static byte PERCENT = 100;
+
+	/**** Main *******************************************    *************/
 	public static void main (String[] args) {
-
-
-/* Loops 
-		for (int i = 0; i < 5; i++) {
-			System.out.println("In For loop");
-		}
 		
-		String input = "";
+		int princ        = (int)readNumber("Principle: ", 1000, 1_000_000);
+		float annualRate = (float)readNumber("Annual rate: ", 0, 30);
+		int period       = (int)readNumber("Period: ", 0, 30);
+		    
+		displayPayment(princ, annualRate, period);
+		
+		displayBalances(princ, annualRate, period);
+
+	}  // main
+	
+	/******************************************************************
+	 * displayBalances
+	 * 		display the balanace left after each payment
+	 * 
+	 * 	b=L[(1+c)^n - (1+c)^p]/[(1+c)^n-1]
+	* c - monthly insterest
+	* n= #ofpayments
+	* p - num of payments we have made
+	* 
+	* 180000, 4, 10
+	*******************************************************************/
+	public static double calculateBalance(int princ, float annualRate, int period, int paymentNumber){
+
+		float monthlyRate =  annualRate / PERCENT /MONTHS_IN_YEAR;
+		int numberOfPayments = period * MONTHS_IN_YEAR;
+
+		double top, bottom, balance;
+		
+		top     = Math.pow(1 + monthlyRate, numberOfPayments) - Math.pow((1 + monthlyRate), paymentNumber);
+		bottom  = Math.pow(1 + monthlyRate, numberOfPayments) - 1;
+		balance = princ * (top/bottom);
+		
+		return(balance);
+	}  // calculateBalance
+		
+	/******************************************************************
+	 * displayBalances
+	 * 		display the balanace left after each payment
+	* 
+	* 180000, 4, 10
+	*******************************************************************/
+	public static void displayBalances(int princ, float annualRate, int period){
+			
+		System.out.println("Payment Schedule");				
+		System.out.println("----------------");
+
+		int numberOfPayments = period  * MONTHS_IN_YEAR;
+		for (int month = 1; month <= numberOfPayments; month++) {
+			
+			double balance = calculateBalance(princ, annualRate, period, month);
+			
+			String result = NumberFormat.getCurrencyInstance().format(balance);
+			System.out.println(month + " " + result);
+			
+		} // for
+		
+	} // displayBalances
+	
+	/******************************************************************
+	 * displayPayments
+	 * 		Display the monthly payment
+	 * ****************************************************************/
+	public static void displayPayment(int princ, float annualRate, int period){
+
+
+		double monthly = calcualateMortgage(princ, annualRate, period);
+
+		String result = NumberFormat.getCurrencyInstance().format(monthly);	
+		System.out.println("\nMortgage");
+		System.out.println("--------");
+		System.out.println("Monthly Payments: " + result + "\n");
+
+	} // displayPayments
+		
+	/******************************************************************
+	 * readNumber
+	 * 		Read in a number between MIN and MAX
+	 * ****************************************************************/
+	public static double readNumber(String prompt, int min, int max){
+
 		Scanner scanner = new Scanner(System.in);
-		int j = 0;
-		while (!input.equals("quit")) {
-			// Get Princ
-			System.out.print("input: ");
-			input = scanner.next().toLowerCase();
-		}  // while 
-		
-		// For each loop
-		String[] fruits = { "A", "M", "O" };
-		for (String fruit : fruits)
-			System.out.println(fruit);
-*/
+		float number = 0.0F;
 
-/* Control flow 
-		// && AND, || OR, ! NOT
-		int temp = 12;
-		if (temp > 30) {
-			System.out.println("Hot day");
-			System.out.println("Drink water");
-		} else if (temp > 20 ) 
-			System.out.println("Nice day");
-		else 
-			System.out.println("Cold!");
-		
-		int income = 120_000;
-		boolean hasHighIncome = (income > 100_000);
-		
-		// Ternary op
-		int income2 = 120_000;
-		String className = income2 > 100_000 ? "First" : "Ecomony";
-		
-		// switch
-		String role = "Admin";
-		switch (role) {
-			case "Admin":
-				System.out.println(" You are Admin");
+		System.out.print(prompt);
+		while (true){
+			number = scanner.nextFloat();
+			if ((number >= min) || (number <= max))
 				break;
-			case "Moderator":
-				System.out.println(" You are Moderator");
-				break;
-			default:
-				System.out.println(" You are Guest");
-		}  // switch - role
-*/		
+			System.out.println("Between " + min + " and " + max);
+			}
+		return number;
+	}  // readNumber
+		
+	/******************************************************************
+	 * calcualateMortgage
+	 * 		do the math to get monthly payment
+	 * ****************************************************************/
+	public static double calcualateMortgage( int pricipal, float annualRate, int period) {
 
-/* Reading Input 
-		Scanner scanner = new Scanner(System.in);
-		System.out.print("Age: ");
-		byte age = scanner.nextByte();
-		System.out.println("You are " + age);
-		
-		System.out.print("Name: ");
-		String name = scanner.nextLine().trim();
-		System.out.println("You are " + name);
-*/
+		float monthlyRate =  annualRate / PERCENT /MONTHS_IN_YEAR;
+		int numberOfPayments = period * MONTHS_IN_YEAR;
 
-/* Formatting numbers 
-		NumberFormat currency = NumberFormat.getCurrencyInstance();
-		String result = currency.format(1234567.891);
-		System.out.println(result);
+		// M = Princ * ((rate * (1+rate)^n) / ((1+rate)^n-1))
+		double top = (monthlyRate * Math.pow(monthlyRate+1, numberOfPayments));
+		double bottom = Math.pow(1+monthlyRate, numberOfPayments) -1;
+		double monthly = pricipal * (top / bottom);
 		
-		// NumberFormat.getPercentInstance 
-		String result2 = NumberFormat.getPercentInstance().format(.1);
-		System.out.println(result2);
-*/
-
-/* Math class
-		int result = Math.round(1.1F);  //ceil, floor, max, min, random
-		System.out.println(result);
-
-		String x = "1";
-		int y = Integer.parseInt(x) + 2;  //Float, Double...
-		System.out.println(y);
-
-		final float PI = 3.14F;
-*/
-
-/* Arrays
-//		int [][] numbers = new int[2][3];
-		int [][] numbers = { {1,2,3}, {4,5,6 } };
-		numbers[0][0] = 1;
-		System.out.println(Arrays.deepToString(numbers));
-*/
-
-/*		
-		int[] num2 = { 2, 3, 5, 1, 4};
-		Arrays.sort(num2);
-		System.out.println(num2.length);
-		System.out.println(Arrays.toString(num2));
-		
-		int[] numbers = new int[5];
-		numbers[0] = 1;
-		numbers[1] = 2;
-		
-		System.out.println(numbers);
-		System.out.println(Arrays.toString(numbers));
-*/
-		
-/*
- 		String message = "Hello \"World\"" + "!!";   // still like 'new'
-		System.out.println(message.endsWith("!!"));
-		System.out.println(message.indexOf("W"));
-		String message2 = message.replace("!", "&");
-		System.out.println(message2);
-		System.out.println(message);
-		
-		Point point1 = new Point(1,1);
-		Point point2 = point1;
-		System.out.println(point2);
-		
-		point1.x = 2;
-		
-		System.out.println(point2.x);
-*/
-		
-/*		int age = 30;
-		age = 35;
-		long views = 333_444_555_666L;
-		float price = 10.99F;
-		
-		System.out.println("Hello World! I'm " + views + " years old.");
-
-		Date now = new Date();
-		System.out.println(now);
-		*/
-	}
-}
+		System.out.println("Number of payments: " + numberOfPayments);
+		return(monthly);
+	}  // calculateMortgage
+	
+} // Main
+	
+	
